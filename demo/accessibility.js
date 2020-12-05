@@ -8,6 +8,7 @@ var doc = new PDFDocument({
   lang: 'en-US',
   tagged: true,
   tabs: 'S',
+  marked: true,
   displayTitle: true
 });
 
