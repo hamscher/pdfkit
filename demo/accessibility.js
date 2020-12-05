@@ -7,6 +7,7 @@ var doc = new PDFDocument({
   pdfVersion: '1.5',
   lang: 'en-US',
   tagged: true,
+  tabs: 'S',
   displayTitle: true
 });
 
