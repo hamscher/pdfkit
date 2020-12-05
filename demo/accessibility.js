@@ -176,7 +176,7 @@ linkSection.end();
 // Add a list with a font loaded from a TrueType collection file
 var listSection = doc.struct('Sect');
 struct.add(listSection);
-var list = doc.struct('List');
+var list = doc.struct('L');
 listSection.add(list);
 doc
   .fillColor('#000')
