@@ -20,28 +20,50 @@ const files = [
   'images.md',
   'outline.md',
   'annotations.md',
+  'forms.md',
   'destinations.md',
-  'you_made_it.md'
+  'attachments.md',
+  'accessibility.md',
+  'table.md',
+  'you_made_it.md',
 ];
 
 // shared lorem ipsum text so we don't need to copy it into every example
 const lorem =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam in suscipit purus. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Vivamus nec hendrerit felis. Morbi aliquam facilisis risus eu lacinia. Sed eu leo in turpis fringilla hendrerit. Ut nec accumsan nisl. Suspendisse rhoncus nisl posuere tortor tempus et dapibus elit porta. Cras leo neque, elementum a rhoncus ut, vestibulum non nibh. Phasellus pretium justo turpis. Etiam vulputate, odio vitae tincidunt ultricies, eros odio dapibus nisi, ut tincidunt lacus arcu eu elit. Aenean velit erat, vehicula eget lacinia ut, dignissim non tellus. Aliquam nec lacus mi, sed vestibulum nunc. Suspendisse potenti. Curabitur vitae sem turpis. Vestibulum sed neque eget dolor dapibus porttitor at sit amet sem. Fusce a turpis lorem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae;';
 
-const extractHeaders = function(tree) {
+const getNodeName = function (node) {
+  if (node.length === 3) {
+    return node[2];
+  }
+  const words = [];
+  for (let i = 2; i < node.length; i++) {
+    const part = node[i];
+    // e.g. ['inlinecode', 'value']
+    if (Array.isArray(part)) {
+      words.push(part[1]);
+    } else {
+      words.push(part);
+    }
+  }
+  return words.join('');
+};
+
+const extractHeaders = function (tree) {
   const headers = [];
 
   for (let index = 0; index < tree.length; index++) {
     const node = tree[index];
     if (node[0] === 'header' && (headers.length === 0 || node[1].level > 1)) {
+      const name = getNodeName(node);
       if (node[1].level > 2) {
         node[1].level = 2;
       }
-      const hash = node[2].toLowerCase().replace(/\s+/g, '_');
+      const hash = name.toLowerCase().replace(/\s+/g, '_');
       node[1].id = hash;
       headers.push({
         hash,
-        title: node[2]
+        title: name,
       });
     }
   }
@@ -50,7 +72,7 @@ const extractHeaders = function(tree) {
 };
 
 let imageIndex = 0;
-const generateImages = function(tree) {
+const generateImages = function (tree) {
   // find code blocks
   const codeBlocks = [];
   for (var node of tree) {
@@ -78,7 +100,7 @@ const generateImages = function(tree) {
 
       vm.runInNewContext(code, {
         doc,
-        lorem
+        lorem,
       });
 
       delete attrs.title;
@@ -88,7 +110,7 @@ const generateImages = function(tree) {
       // write the PDF, convert to PNG and trim with ImageMagick (https://imagemagick.org)
       file.on('finish', () => {
         exec(
-          `magick convert -density 150x150 -trim ${f}.pdf ${f}.png`,
+          `magick -density 150x150 ${f}.pdf -trim ${f}.png`,
           (err, stdout, stderr) => {
             if (stderr) {
               console.error(stderr);
@@ -97,7 +119,7 @@ const generateImages = function(tree) {
               console.error(err);
             }
             fs.unlinkSync(`${f}.pdf`);
-          }
+          },
         );
       });
 
@@ -113,7 +135,7 @@ for (let file of Array.from(files)) {
   // turn github highlighted code blocks into normal markdown code blocks
   content = content.replace(
     /^```javascript\n((:?.|\n)*?)\n```/gm,
-    (m, $1) => `    ${$1.split('\n').join('\n    ')}`
+    (m, $1) => `    ${$1.split('\n').join('\n    ')}`,
   );
 
   const tree = markdown.parse(content);
@@ -127,7 +149,7 @@ for (let file of Array.from(files)) {
     url: `/docs/${file}.html`,
     title: headers[0].title,
     headers: headers.slice(1),
-    content: markdown.toHTML(tree)
+    content: markdown.toHTML(tree),
   });
 }
 
